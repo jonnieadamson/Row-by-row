@@ -1,0 +1,1041 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Row by Row – knitting pattern tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FDF3F5; --surface:#FFFFFF; --bar:#FBE6EB; --ink:#22191C; --muted:#514347; --line:#E3D2D6; --outline:#837377;
+  --accent:#984061; --accent-ink:#FFFFFF; --soft:#FFD9E2; --soft-ink:#3E001D;
+  --alert-bg:#FFD24A; --alert-ink:#2A1E00; --ok:#1B6E53; --tile:#3E001D; --tile-ink:#FFD9E2;
+  --shadow:0 1px 2px rgba(0,0,0,.28),0 1px 3px 1px rgba(0,0,0,.14);
+  --scale:1; --bw:0px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  font-size:calc(16px * var(--scale));
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#1A1113; --surface:#2A2023; --bar:#231A1C; --ink:#F0DEE1; --muted:#D5C2C6; --line:#514347; --outline:#9E8C90;
+    --accent:#FFB1C8; --accent-ink:#5E1133; --soft:#7B2949; --soft-ink:#FFD9E2; --ok:#7FDDB8; --tile:#FFD9E2; --tile-ink:#3E001D;
+    --shadow:0 1px 2px rgba(0,0,0,.6);
+  }
+  :root:not([data-theme="light"])[data-contrast="high"]{
+    --bg:#000; --surface:#000; --bar:#000; --ink:#FFF; --muted:#FFF; --line:#FFF; --outline:#FFF; --accent:#FFB3D6; --accent-ink:#000;
+    --soft:#000; --soft-ink:#FFF; --tile:#FFF; --tile-ink:#000; --ok:#9FFFD9; --shadow:none; --bw:2px;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#1A1113; --surface:#2A2023; --bar:#231A1C; --ink:#F0DEE1; --muted:#D5C2C6; --line:#514347; --outline:#9E8C90;
+  --accent:#FFB1C8; --accent-ink:#5E1133; --soft:#7B2949; --soft-ink:#FFD9E2; --ok:#7FDDB8; --tile:#FFD9E2; --tile-ink:#3E001D;
+  --shadow:0 1px 2px rgba(0,0,0,.6);
+}
+:root[data-contrast="high"]{
+  --bg:#FFF; --surface:#FFF; --bar:#FFF; --ink:#000; --muted:#000; --line:#000; --outline:#000; --accent:#7A0040; --accent-ink:#FFF;
+  --soft:#FFF; --soft-ink:#000; --tile:#000; --tile-ink:#FFF; --ok:#004D36; --shadow:none; --bw:2px;
+}
+:root[data-theme="dark"][data-contrast="high"]{
+  --bg:#000; --surface:#000; --bar:#000; --ink:#FFF; --muted:#FFF; --line:#FFF; --outline:#FFF; --accent:#FFB3D6; --accent-ink:#000;
+  --soft:#000; --soft-ink:#FFF; --tile:#FFF; --tile-ink:#000; --ok:#9FFFD9; --shadow:none; --bw:2px;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 8.5rem)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:Roboto,"Noto Sans",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.5;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bar)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.skip{position:absolute;left:-999px;top:0;background:var(--ink);color:var(--bg);padding:.6rem 1rem;z-index:30}
+.skip:focus{left:.5rem;top:.5rem}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:40rem;margin:0 auto;padding:0 1rem}
+
+/* top app bar and tabs */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--bar);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:.25rem;min-height:4rem;padding:0 .5rem}
+.bar .titles{flex:1;min-width:0;padding:0 .5rem}
+header.top h1{font-size:1.3rem;font-weight:500;margin:0;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.top p{margin:0;color:var(--muted);font-size:.875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button.icon{border:var(--bw) solid var(--outline);width:3rem;height:3rem;min-width:3rem;padding:0;border-radius:50%;color:var(--ink);flex:none}
+button.icon svg{width:1.5rem;height:1.5rem;fill:currentColor}
+button.text{border:var(--bw) solid var(--outline);flex:none;padding:.5rem .9rem}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);padding:0}
+.tabs button{border:0;border-radius:0;min-height:3rem;color:var(--muted);border-bottom:3px solid transparent;padding:.4rem .25rem}
+.tabs button[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+
+/* buttons */
+button,.btn{font:inherit;font-weight:500;letter-spacing:.01em;color:var(--accent);background:transparent;border:1px solid var(--outline);
+  border-radius:100px;min-height:3rem;min-width:3rem;padding:.5rem 1.25rem;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:.4rem;text-align:center}
+button:hover{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+button:active{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+button[disabled]{opacity:.45;cursor:not-allowed}
+button.primary,button.primary:hover{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);box-shadow:var(--shadow)}
+button.primary:active{filter:brightness(.9)}
+button.tonal,button[aria-pressed="true"]{background:var(--soft);color:var(--soft-ink);border:var(--bw) solid var(--outline)}
+
+.card{background:var(--surface);border:var(--bw) solid var(--line);border-radius:.75rem;padding:1rem;margin:.75rem 0;box-shadow:var(--shadow)}
+h2{font-size:1.15rem;font-weight:500;margin:0 0 .6rem}
+h3{font-size:.95rem;font-weight:500;margin:1.2rem 0 .4rem;color:var(--accent)}
+p{margin:.5rem 0}
+.muted{color:var(--muted)}
+label{font-weight:500;display:block;margin:.8rem 0 .25rem}
+input[type=text],input[type=number],textarea,select{font:inherit;color:var(--ink);background:var(--surface);
+  border:1px solid var(--outline);border-radius:.3rem;padding:.75rem .9rem;width:100%;min-height:3.5rem}
+input[type=text]:focus,input[type=number]:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+input[type=number]{width:5.5rem}
+input[type=checkbox]{width:1.5rem;height:1.5rem;flex:none;accent-color:var(--accent)}
+input[type=range]{accent-color:var(--accent)}
+textarea{min-height:9rem;resize:vertical}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.row label{margin:0;font-weight:400}
+.thumbs{display:flex;gap:.6rem;flex-wrap:wrap;margin:.8rem 0;padding:0;list-style:none}
+.thumbs li{position:relative}
+.thumbs img{width:5.5rem;height:5.5rem;object-fit:cover;border-radius:.75rem;border:1px solid var(--line);display:block}
+.thumbs button{position:absolute;top:-.5rem;right:-.5rem;min-height:2rem;min-width:2rem;width:2rem;padding:0;border-radius:50%;background:var(--surface)}
+.pastebox{border:2px dashed var(--outline);border-radius:.75rem;min-height:4.5rem;padding:.8rem;background:var(--bg);-webkit-user-select:text;user-select:text}
+.pastebox:empty::before{content:"Press and hold here, then choose Paste";color:var(--muted)}
+details.inner{border-top:1px solid var(--line);padding:.2rem 0}
+details summary{cursor:pointer;font-weight:500;padding:.85rem 0;min-height:3rem}
+details.card{padding:0 1rem}
+details.card>summary{font-size:1rem;padding:1rem 0}
+details.card[open]{padding-bottom:1rem}
+.status{min-height:1.5rem;font-weight:500}
+.panel{border:2px solid var(--accent);border-radius:.75rem;padding:1rem;margin:.75rem 0;background:var(--surface)}
+
+/* library */
+#lib{list-style:none;margin:0;padding:0}
+#lib li{border:1px solid var(--line);border-radius:.75rem;padding:.9rem;margin:.6rem 0}
+#lib .name{font-weight:500;font-size:1.1rem;overflow-wrap:anywhere}
+#lib .row{margin-top:.7rem}
+#lib .row button:first-child{flex:1}
+
+/* alert banner */
+#alertBox:empty{display:none}
+#alertBox{background:var(--alert-bg);color:var(--alert-ink);border:2px solid var(--alert-ink);border-radius:.75rem;padding:.8rem 1rem;margin:.75rem 0}
+#alertBox ul{margin:0;padding:0;list-style:none}
+#alertBox li{display:flex;gap:.6rem;align-items:baseline;padding:.15rem 0;font-size:1.05rem}
+#alertBox li::before{content:"⚠";font-weight:700}
+
+/* current row */
+#current{outline-offset:4px;padding-bottom:0}
+.curhead{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+.counter{display:flex;gap:.25rem}
+.counter span{background:var(--tile);color:var(--tile-ink);font-weight:700;font-size:2.6rem;line-height:1;
+  width:2.1rem;padding:.55rem 0;text-align:center;border-radius:.5rem;font-variant-numeric:tabular-nums}
+.counter span.tick{animation:tick .25s ease-out}
+@keyframes tick{from{transform:translateY(-.35rem);opacity:.4}to{transform:none;opacity:1}}
+.curhead h2{margin:0;font-size:1.3rem}
+.chips{display:flex;gap:.4rem;flex-wrap:wrap;margin:.7rem 0 0;padding:0;list-style:none}
+.chips li{border:var(--bw) solid var(--outline);border-radius:.5rem;padding:.25rem .7rem;font-size:.875rem;font-weight:500;display:inline-flex;gap:.4rem;align-items:center;background:var(--soft);color:var(--soft-ink)}
+.sw{display:inline-block;width:1rem;height:1rem;border-radius:50%;border:2px solid currentColor;flex:none}
+.instr{font-size:1.5rem;line-height:1.35;margin:.9rem 0 .4rem;font-weight:500;overflow-wrap:anywhere}
+.cycle{margin:.4rem 0;padding-left:1.4rem}
+.cycle li{padding:.15rem 0}
+.cycle li.next{font-weight:700}
+.cycle li.next::after{content:" ← work this one next";color:var(--accent)}
+.chartbox{overflow-x:auto;margin:.8rem 0 .2rem;border:1px solid var(--line);border-radius:.5rem;background:var(--surface);padding:.5rem}
+.chartbox svg{display:block;color:var(--ink)}
+svg .ln{stroke:var(--ink);stroke-width:2;fill:none;stroke-linecap:round}
+svg .dot{fill:var(--ink)}
+svg .cell{fill:var(--surface);stroke:var(--outline);stroke-width:1}
+svg .cur{fill:none;stroke:var(--accent);stroke-width:3}
+svg text{fill:var(--ink);font-family:inherit;font-size:13px}
+svg text.sym{font-weight:700;font-size:14px;text-anchor:middle}
+.progress{height:.3rem;background:var(--soft);border:var(--bw) solid var(--outline);border-radius:1rem;overflow:hidden;margin:.75rem 0 0}
+.progress div{height:100%;background:var(--accent);width:0;border-radius:1rem}
+.soon{border-left:4px solid var(--alert-bg);padding-left:.7rem;margin-top:.8rem}
+.actions{position:sticky;bottom:0;background:var(--surface);margin-top:.8rem;border-top:1px solid var(--line);
+  padding:.75rem 0 calc(1rem + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:auto 1fr auto;gap:.6rem;border-radius:0 0 .75rem .75rem}
+.actions button{min-height:3.75rem;border-radius:1rem}
+.actions .wide{grid-column:1 / -1;min-height:3rem;border-radius:100px}
+#btnDone{font-size:1.25rem;font-weight:700}
+
+/* checklist */
+ol.list{list-style:none;margin:0;padding:0}
+ol.list li{margin:0;border-bottom:1px solid var(--line)}
+ol.list button{width:100%;justify-content:flex-start;text-align:left;gap:.75rem;padding:.8rem .5rem;align-items:flex-start;
+  border:var(--bw) solid transparent;border-radius:.5rem;color:var(--ink);font-weight:400;min-height:3.5rem}
+ol.list .box{flex:none;width:1.4rem;height:1.4rem;border:2px solid var(--muted);border-radius:.2rem;display:inline-flex;align-items:center;justify-content:center;font-weight:700;line-height:1;margin-top:.1rem}
+ol.list .num{flex:none;min-width:3.6rem;font-weight:500;font-variant-numeric:tabular-nums}
+ol.list .txt{flex:1;overflow-wrap:anywhere}
+ol.list .flag{flex:none;background:var(--alert-bg);color:var(--alert-ink);border-radius:.4rem;padding:0 .4rem;font-size:.8rem;font-weight:700;border:1px solid var(--alert-ink)}
+ol.list li.done button{color:var(--muted)}
+ol.list li.done .txt{text-decoration:line-through}
+ol.list li.done .box{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+ol.list li.done .box::before{content:"✓"}
+ol.list li.now button{background:var(--soft);color:var(--soft-ink);font-weight:500;border:2px solid var(--accent)}
+ol.list li.now .box{border-color:var(--accent)}
+ol.list li.now .box::before{content:"▶";color:var(--accent);font-size:.75rem}
+
+.key{display:grid;grid-template-columns:repeat(auto-fill,minmax(13rem,1fr));gap:.4rem .8rem;padding:0;margin:.4rem 0;list-style:none}
+.key li{display:flex;gap:.5rem;align-items:center}
+.key svg{color:var(--ink);flex:none}
+dl.abbr{display:grid;grid-template-columns:auto 1fr;gap:.2rem .8rem;margin:.4rem 0}
+dl.abbr dt{font-weight:700}
+dl.abbr dd{margin:0}
+#matchImg{max-width:100%;max-height:14rem;border-radius:.75rem;border:1px solid var(--line);display:block;margin:.6rem 0}
+main{padding-top:.25rem;padding-bottom:2rem}
+[hidden]{display:none !important}
+@media (prefers-reduced-motion: reduce){.counter span.tick{animation:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the main content</a>
+
+<header class="top">
+  <div class="bar wrap">
+    <button id="btnHome" class="icon" aria-label="Back to my patterns" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <div class="titles">
+      <h1 id="title">Row by Row</h1>
+      <p id="subtitle">Keep your place in your knitting patterns</p>
+    </div>
+    <button id="btnFinish" class="text" aria-expanded="false" aria-controls="finishPanel" hidden>Finish or clear</button>
+  </div>
+  <nav id="nav" class="tabs wrap" aria-label="Pattern views" hidden>
+    <button type="button" data-go="knit" aria-current="page">Knit</button>
+    <button type="button" data-go="list">Checklist</button>
+    <button type="button" data-go="tools">Tools</button>
+  </nav>
+</header>
+
+<main class="wrap" id="main" tabindex="-1">
+
+<!-- HOME -->
+<div id="home">
+  <section class="card" id="libCard" aria-labelledby="libH" hidden>
+    <h2 id="libH">My patterns</h2>
+    <p class="muted">Each pattern keeps its own place. Open one to carry on where you stopped.</p>
+    <ul id="lib"></ul>
+  </section>
+
+  <section id="setup" class="card" aria-labelledby="setupH">
+    <h2 id="setupH">Add a pattern</h2>
+    <p>Photograph the written pattern and it becomes a checklist, one row at a time. Sharp, well-lit photos read best; for a long pattern, take one photo per page.</p>
+    <div id="photoPart">
+      <label for="size">Size you’re making <span class="muted" style="font-weight:400">(only if the pattern gives several)</span></label>
+      <input type="text" id="size" autocomplete="off" placeholder="e.g. Medium, or the second size">
+      <div class="row" style="margin-top:1rem">
+        <button type="button" id="btnCam">Take a photo</button>
+        <button type="button" id="btnPick">Choose photos</button>
+        <input class="sr" tabindex="-1" aria-hidden="true" type="file" id="fileCam" accept="image/*" capture="environment">
+        <input class="sr" tabindex="-1" aria-hidden="true" type="file" id="filePick" accept="image/*" multiple>
+      </div>
+      <details class="inner" id="pickHelp">
+        <summary>Photo buttons not opening?</summary>
+        <p>Some phone apps don’t let a page open the camera or photo library. Two ways round it:</p>
+        <ul>
+          <li>Open this tracker in your phone’s web browser (Chrome or Safari) using the same link. When you’re signed in, your saved patterns should follow you.</li>
+          <li>Or copy the photo in your photos app, then paste it into the box below.</li>
+        </ul>
+        <div class="pastebox" contenteditable="true" role="textbox" aria-label="Paste a copied photo of the pattern here"></div>
+      </details>
+      <ul class="thumbs" id="thumbs" aria-label="Photos added"></ul>
+      <button class="primary" id="btnRead" disabled>Make my checklist</button>
+    </div>
+    <p id="noClaude" class="muted" hidden>Photo reading isn’t available in this view. You can still type rows below, one per line, or open the sample pattern.</p>
+    <details class="inner" id="textPart">
+      <summary>Type or paste the pattern instead</summary>
+      <label for="patText">Pattern text</label>
+      <textarea id="patText" spellcheck="false"></textarea>
+      <p><button id="btnText">Make checklist from text</button></p>
+    </details>
+    <details class="inner">
+      <summary>Just want to see how it works?</summary>
+      <p><button id="btnSample">Open the sample pattern</button></p>
+    </details>
+    <p class="status" id="setupStatus" role="status"></p>
+    <button id="btnStop" hidden>Cancel</button>
+  </section>
+</div>
+
+<!-- TRACKER -->
+<div id="tracker" hidden>
+<div class="tabp" data-tab="knit">
+  <div class="panel" id="finishPanel" hidden>
+    <h2 id="finishH" tabindex="-1">Finish or clear this pattern</h2>
+    <p>Your other saved patterns are not affected.</p>
+    <div class="row">
+      <button id="btnRestart">Start again from the first row</button>
+      <button id="btnRemove" class="primary">Remove this pattern</button>
+      <button id="btnFinishNo">Cancel</button>
+    </div>
+  </div>
+
+  <div id="alertBox" role="alert"></div>
+
+  <article id="current" class="card" tabindex="-1" aria-labelledby="curH">
+    <div class="curhead">
+      <div class="counter" id="counter" aria-hidden="true"></div>
+      <div>
+        <h2 id="curH">Row</h2>
+        <div class="muted" id="curSub"></div>
+      </div>
+    </div>
+    <div class="progress" role="progressbar" aria-label="Pattern progress" aria-valuemin="0" id="prog"><div id="progFill"></div></div>
+    <ul class="chips" id="chips"></ul>
+    <p class="instr" id="instr"></p>
+    <div id="untilBox" hidden>
+      <ol class="cycle" id="cycle"></ol>
+      <p><strong id="tally"></strong></p>
+      <button id="btnSection">This section is finished</button>
+    </div>
+    <div id="doneBox" class="row" hidden>
+      <button id="btnDoneRemove" class="primary">Remove this pattern</button>
+      <button id="btnDoneHome">My patterns</button>
+    </div>
+    <div id="chartWrap" hidden><div class="chartbox" id="chartbox"></div></div>
+    <div class="soon muted" id="soon" hidden></div>
+    <p class="status" id="moveStatus" role="status"></p>
+    <div class="actions">
+      <button id="btnBack" class="tonal" aria-label="Go back one row">◀ Back</button>
+      <button id="btnDone" class="primary">Row complete</button>
+      <button id="btnSpeak" class="tonal" aria-label="Read this row aloud" hidden>Read</button>
+      <button id="btnListen" class="wide" aria-pressed="false" hidden>Listen for “row complete”</button>
+      <button id="btnStopSpeak" class="wide" hidden>Stop reading aloud</button>
+    </div>
+  </article>
+
+</div>
+<div class="tabp" data-tab="list" hidden>
+  <details class="card" id="listCard" open>
+    <summary>Checklist and skipping rows</summary>
+    <div class="row">
+      <label for="advN">Advance by</label>
+      <input type="number" id="advN" min="1" max="500" value="5" inputmode="numeric">
+      <button id="btnAdv">rows</button>
+      <button id="btnFind">Show my row</button>
+    </div>
+    <p class="muted">Select any row to move straight to it.</p>
+    <div id="list"></div>
+  </details>
+
+</div>
+<div class="tabp" data-tab="tools" hidden>
+  <details class="card" id="voiceCard">
+    <summary>Voice commands and reading aloud</summary>
+    <p class="muted" id="voiceNote"></p>
+    <p class="status" id="heard" role="status"></p>
+    <p>You can say: “row complete”, “next row”, “advance five rows”, “go back”, “go to row forty”, “read row”, “where am I”, “section finished” or “stop listening”.</p>
+    <label for="autoRead">Read aloud automatically</label>
+    <select id="autoRead">
+      <option value="off">Never – only when I press Read</option>
+      <option value="alerts">When something changes (colour, shaping, a different repeat)</option>
+      <option value="all">Every row</option>
+    </select>
+    <label for="rate">Reading speed</label>
+    <input type="range" id="rate" min="0.7" max="1.5" step="0.1" value="1" style="width:100%;min-height:2.75rem">
+  </details>
+
+  <details class="card" id="matchCard">
+    <summary>Lost your place? Match a photo of your knitting</summary>
+    <p>Photograph your knitting laid flat and the pattern is compared against it to suggest which row you’ve reached. It’s an estimate – check it against your work before moving.</p>
+    <div class="row">
+      <button type="button" id="btnMatchPick">Photograph my knitting</button>
+      <input class="sr" tabindex="-1" aria-hidden="true" type="file" id="matchFile" accept="image/*">
+      <button id="btnMatchStop" hidden>Cancel</button>
+    </div>
+    <details class="inner" id="matchHelp">
+      <summary>Photo button not opening?</summary>
+      <p>Open this tracker in your phone’s web browser instead, or copy the photo in your photos app and paste it into the box below.</p>
+      <div class="pastebox" contenteditable="true" role="textbox" aria-label="Paste a copied photo of your knitting here"></div>
+    </details>
+    <img id="matchImg" alt="Your photo of the knitting so far" hidden>
+    <p class="status" id="matchStatus" role="status"></p>
+    <div id="matchResult"></div>
+  </details>
+
+  <details class="card">
+    <summary>Key, colours and abbreviations</summary>
+    <p id="notes"></p>
+    <h3>Diagram symbols</h3>
+    <p class="muted">The diagram shows stitches in the order you work them, left to right. The outlined row is the one to work now, with rows already worked beneath it. “↻ rep” marks one repeat of the stitch pattern, not the whole row.</p>
+    <ul class="key" id="symKey"></ul>
+    <h3 id="colH">Yarn colours</h3>
+    <ul class="key" id="colKey"></ul>
+    <h3 id="abbrH">Abbreviations</h3>
+    <dl class="abbr" id="abbr"></dl>
+  </details>
+</div>
+</div>
+
+<details class="card" id="displayCard">
+  <summary>Display and accessibility</summary>
+  <div class="row" role="group" aria-label="Text size">
+    <button id="btnSmaller">Smaller text</button>
+    <button id="btnBigger">Larger text</button>
+    <button id="btnContrast" aria-pressed="false">High contrast</button>
+  </div>
+  <div class="row" style="margin-top:.8rem"><input type="checkbox" id="showChart"><label for="showChart">Show the stitch diagram</label></div>
+  <div class="row" id="wakeRow" hidden style="margin-top:.8rem"><input type="checkbox" id="wake"><label for="wake">Keep the screen on while I knit</label></div>
+  <div class="row" style="margin-top:.8rem"><input type="checkbox" id="keys"><label for="keys">Keyboard shortcuts: N next row, B back, R read, W where am I</label></div>
+</details>
+</main>
+
+<div class="sr" aria-live="polite" id="live"></div>
+
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const el = (tag, props, ...kids) => { const e=document.createElement(tag); if(props) for(const k in props){ if(k==='class') e.className=props[k]; else if(k==='text') e.textContent=props[k]; else if(k.startsWith('on')) e.addEventListener(k.slice(2),props[k]); else e.setAttribute(k,props[k]); } for(const c of kids) if(c!=null) e.append(c); return e; };
+const SVGNS='http://www.w3.org/2000/svg';
+const sv = (tag, attrs) => { const e=document.createElementNS(SVGNS,tag); for(const k in attrs||{}) e.setAttribute(k,attrs[k]); return e; };
+const lsGet = k => { try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } };
+const lsSet = (k,v) => { try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } };
+const lsDel = k => { try{ localStorage.removeItem(k); }catch(e){} };
+const use = n => (window.claude && typeof claude.use==='function') ? claude.use(n).catch(()=>null) : Promise.resolve(null);
+const str = (v,max) => (typeof v==='string'?v:(v==null?'':String(v))).slice(0,max||400);
+const newId = () => 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+/* ---------- settings ---------- */
+const SET = Object.assign({scale:1, contrast:false, autoRead:'alerts', rate:1, chart:true, keys:true}, lsGet('rbr.settings')||{});
+const SCALES=[0.9,1,1.15,1.3,1.5,1.75];
+function applySettings(){
+  document.documentElement.style.setProperty('--scale', SET.scale);
+  if(SET.contrast) document.documentElement.setAttribute('data-contrast','high'); else document.documentElement.removeAttribute('data-contrast');
+  $('btnContrast').setAttribute('aria-pressed', String(!!SET.contrast));
+  $('autoRead').value=SET.autoRead; $('rate').value=SET.rate; $('showChart').checked=!!SET.chart; $('keys').checked=!!SET.keys;
+  lsSet('rbr.settings', SET);
+}
+const stepScale=d=>{ let i=SCALES.indexOf(SET.scale); if(i<0) i=1; SET.scale=SCALES[Math.max(0,Math.min(SCALES.length-1,i+d))]; applySettings(); };
+$('btnSmaller').onclick=()=>stepScale(-1);
+$('btnBigger').onclick=()=>stepScale(1);
+$('btnContrast').onclick=()=>{ SET.contrast=!SET.contrast; applySettings(); };
+$('autoRead').onchange=e=>{ SET.autoRead=e.target.value; applySettings(); };
+$('rate').onchange=e=>{ SET.rate=Number(e.target.value)||1; applySettings(); if(tts&&tts.setRate) tts.setRate(SET.rate).catch(()=>{}); };
+$('showChart').onchange=e=>{ SET.chart=e.target.checked; applySettings(); if(S.id) render(false); };
+$('keys').onchange=e=>{ SET.keys=e.target.checked; applySettings(); };
+
+/* ---------- pattern model ---------- */
+const SAMPLE = {
+  title:"Sample: striped swatch with a lace row",
+  notes:"A short made-up pattern so you can try the buttons. 4 mm needles, two colours of DK yarn.",
+  colours:[{id:"A",name:"Navy",hex:"#223a66"},{id:"B",name:"Mustard",hex:"#d9a521"}],
+  abbreviations:[{abbr:"k",meaning:"knit"},{abbr:"p",meaning:"purl"},{abbr:"m1",meaning:"make one stitch"},{abbr:"yo",meaning:"yarn over"},{abbr:"k2tog",meaning:"knit two stitches together"},{abbr:"RS / WS",meaning:"right side / wrong side"}],
+  defs:{
+    r1:{text:"*K2, p2; rep from * to last 2 sts, k2",spoken:"Knit 2, purl 2, repeated to the last 2 stitches, then knit 2",side:"RS",colour:"A",sts:42,chart:[["k",2],["p",2]],chartRepeat:true},
+    r2:{text:"P2, *k2, p2; rep from * to end",spoken:"Purl 2, then knit 2, purl 2, repeated to the end",side:"WS",colour:"A",sts:42,chart:[["p",2],["k",2]],chartRepeat:true},
+    ka:{text:"Knit",spoken:"Knit every stitch",side:"RS",colour:"A",chart:[["k",8]],chartRepeat:true},
+    pa:{text:"Purl",spoken:"Purl every stitch",side:"WS",colour:"A",chart:[["p",8]],chartRepeat:true},
+    kb:{text:"Knit",spoken:"Knit every stitch",side:"RS",colour:"B",chart:[["k",8]],chartRepeat:true},
+    pb:{text:"Purl",spoken:"Purl every stitch",side:"WS",colour:"B",chart:[["p",8]],chartRepeat:true},
+    inc:{text:"K1, m1, knit to last st, m1, k1",spoken:"Knit 1, make 1, knit to the last stitch, make 1, knit 1",side:"RS",colour:"A",sts:44,chart:[["k",1],["m1",1],["k",6],["m1",1],["k",1]],chartRepeat:false},
+    lace:{text:"K1, *yo, k2tog; rep from * to last st, k1",spoken:"Knit 1, then yarn over, knit 2 together, repeated to the last stitch, knit 1",side:"RS",colour:"A",sts:44,chart:[["yo",1],["k2tog",1]],chartRepeat:true}
+  },
+  steps:[
+    {note:"Cast on 42 stitches in Navy",section:"Ribbing"},
+    {repeat:[{d:"r1"},{d:"r2"}],times:3},
+    {d:"ka",section:"Body"},{d:"pa"},
+    {d:"inc",alerts:[{type:"increase",note:"Increase row: 2 stitches added, 44 on the needle"}]},{d:"pa"},
+    {repeat:[{d:"kb"},{d:"pb"},{d:"ka"},{d:"pa"}],times:2},
+    {d:"lace",section:"Lace band",alerts:[{type:"change",note:"Eyelet row – not plain knit this time"}]},{d:"pa"},
+    {until:"the work measures 20 cm from the cast-on edge",cycle:["ka","pa"],section:"Top"},
+    {note:"Bind off all stitches and weave in the ends"}
+  ]
+};
+const ALERT_LABEL={colour:'Colour change',increase:'Increase',decrease:'Decrease',shaping:'Shaping',cable:'Cable',change:'Different this time',count:'Check your count',section:'New section',other:'Take note'};
+
+function cleanRaw(r){
+  if(!r||typeof r!=='object'||!r.defs||typeof r.defs!=='object'||!Array.isArray(r.steps)) return null;
+  const out={title:str(r.title,120).trim()||'My pattern',notes:str(r.notes,400),unreadable:str(r.unreadable,400),colours:[],abbreviations:[],defs:{},steps:r.steps};
+  const fall=['#3b5b92','#c4553a','#3a8f6b','#b38a1d','#7a4fa3','#5c6b7a'];
+  (Array.isArray(r.colours)?r.colours:[]).slice(0,12).forEach((c,i)=>{ if(c&&c.id!=null) out.colours.push({id:str(c.id,12),name:str(c.name,40)||('Colour '+str(c.id,12)),hex:/^#[0-9a-f]{6}$/i.test(c.hex||'')?c.hex:fall[i%fall.length]}); });
+  (Array.isArray(r.abbreviations)?r.abbreviations:[]).slice(0,60).forEach(a=>{ if(a&&a.abbr) out.abbreviations.push({abbr:str(a.abbr,20),meaning:str(a.meaning,120)}); });
+  for(const k in r.defs){ const d=r.defs[k]; if(!d||typeof d!=='object') continue;
+    const chart=[]; (Array.isArray(d.chart)?d.chart:[]).slice(0,60).forEach(c=>{ if(Array.isArray(c)&&typeof c[0]==='string'){ chart.push([c[0].toLowerCase().slice(0,10), Math.max(1,Math.min(60,parseInt(c[1],10)||1))]); } });
+    out.defs[k]={text:str(d.text,500).trim()||'See the written pattern for this row',spoken:str(d.spoken,700),side:(d.side==='RS'||d.side==='WS')?d.side:'',colour:d.colour!=null?str(d.colour,12):'',sts:Number.isFinite(d.sts)?d.sts:null,chart,chartRepeat:!!d.chartRepeat};
+  }
+  return out;
+}
+function expand(raw){
+  const out=[]; let section='', rowNo=0, pendingSection=null, lastColour=null;
+  const colName=id=>{ const c=raw.colours.find(c=>c.id===id); return c?c.name:id; };
+  const alertsOf=e=>(Array.isArray(e.alerts)?e.alerts:[]).slice(0,5).filter(a=>a&&a.note).map(a=>({type:ALERT_LABEL[a.type]?a.type:'other',note:str(a.note,200)}));
+  const noteSection=e=>{ if(typeof e.section==='string'&&e.section.trim()&&e.section!==section){ section=str(e.section,60); pendingSection=section; } };
+  function push(it,e){
+    noteSection(e); it.section=section;
+    if(pendingSection){ it.sectionStart=true; if(out.length) it.alerts.unshift({type:'section',note:'New section: '+pendingSection}); pendingSection=null; }
+    out.push(it);
+  }
+  function walk(list,depth){
+    if(!Array.isArray(list)||depth>6) return;
+    for(const e of list){
+      if(out.length>=2000) return;
+      if(!e||typeof e!=='object') continue;
+      if(Array.isArray(e.repeat)){
+        const times=Math.max(1,Math.min(500,parseInt(e.times,10)||1)); noteSection(e);
+        for(let t=1;t<=times&&out.length<2000;t++){
+          const start=out.length; walk(e.repeat,depth+1); const len=out.length-start;
+          if(times>1) for(let i=start;i<out.length;i++) if(!out[i].rep) out[i].rep={i:t,of:times,r:i-start+1,len};
+        }
+      } else if(typeof e.until==='string'){
+        const cyc=(Array.isArray(e.cycle)?e.cycle:[]).map(k=>raw.defs[k]).filter(Boolean).slice(0,24);
+        push({kind:'until',until:str(e.until,200),cycle:cyc,alerts:alertsOf(e),text:'Repeat until '+str(e.until,200)},e);
+      } else if(typeof e.note==='string'){
+        push({kind:'note',text:str(e.note,400),alerts:alertsOf(e)},e);
+      } else if(e.d!=null&&raw.defs[e.d]){
+        const d=raw.defs[e.d]; const own=str(e.text,500).trim();
+        const it={kind:'row',rowNo:++rowNo,text:own||d.text,spoken:own?'':d.spoken,side:d.side,colour:d.colour,sts:d.sts,chart:d.chart,chartRepeat:d.chartRepeat,alerts:alertsOf(e)};
+        if(d.colour&&lastColour!==null&&d.colour!==lastColour&&!it.alerts.some(a=>a.type==='colour')) it.alerts.unshift({type:'colour',note:'Change to '+colName(d.colour)});
+        if(d.colour) lastColour=d.colour;
+        push(it,e);
+      }
+    }
+  }
+  walk(raw.steps,0);
+  return {items:out,totalRows:rowNo};
+}
+const labelOf = it => it.kind==='row'?('Row '+it.rowNo):(it.kind==='until'?'Repeat':'Step');
+function summaryOf(its,total,pos,tallies){
+  const it=its[pos]; const pct=its.length?Math.round(Math.min(pos,its.length)/its.length*100):0;
+  const text=!it?'Finished':(it.kind==='row'?'Row '+it.rowNo+' of '+total:(it.kind==='until'?'Repeat section, '+((tallies||{})[pos]||0)+' rows worked':'Step: '+it.text.slice(0,40)));
+  return {text,pct};
+}
+
+/* ---------- library + persistence ---------- */
+let LIB = lsGet('rbr.lib'); if(!LIB||!Array.isArray(LIB.list)) LIB={active:null,list:[],deleted:[]}; if(!Array.isArray(LIB.deleted)) LIB.deleted=[];
+const S = { id:'', raw:null, pos:0, tallies:{}, updatedAt:0 };
+let items=[], totalRows=0, lastJump=null;
+const entry = id => LIB.list.find(p=>p.id===id);
+const saveLib = () => lsSet('rbr.lib',LIB);
+
+let dbCol=null; const wq={};
+function dbWrite(name,data){   // data===null deletes; one write at a time per document, latest wins
+  if(!dbCol) return; const q=wq[name]||(wq[name]={busy:false,next:undefined}); q.next=data; if(q.busy) return;
+  (async()=>{ q.busy=true; while(q.next!==undefined){ const d=q.next; q.next=undefined; try{ if(d===null) await dbCol.doc(name).delete(); else await dbCol.doc(name).set(d); }catch(e){} } q.busy=false; })();
+}
+let progTimer=null, progDirty='';
+function pushProgress(id){
+  const b=id===S.id?{pos:S.pos,tallies:S.tallies,updatedAt:S.updatedAt}:lsGet('rbr.p.'+id); if(!b) return;
+  dbWrite('prog_'+id,{id,pos:b.pos||0,tallies:JSON.stringify(b.tallies||{}),updatedAt:b.updatedAt||0});
+}
+function flushProgress(){ clearTimeout(progTimer); if(progDirty){ pushProgress(progDirty); progDirty=''; } }
+function saveProgress(){
+  if(!S.id) return;
+  S.updatedAt=Date.now();
+  const ok=lsSet('rbr.p.'+S.id,{raw:S.raw,pos:S.pos,tallies:S.tallies,updatedAt:S.updatedAt});
+  const e=entry(S.id); if(e){ const s=summaryOf(items,totalRows,S.pos,S.tallies); e.summary=s.text; e.pct=s.pct; e.updatedAt=S.updatedAt; }
+  LIB.active=S.id; saveLib();
+  if(!ok&&!dbCol) $('moveStatus').textContent='This device’s storage is full, so your place may not be kept after you close the page.';
+  if(progDirty&&progDirty!==S.id) flushProgress();
+  progDirty=S.id; clearTimeout(progTimer); progTimer=setTimeout(flushProgress,800);
+}
+function storePattern(id,raw,pos,tallies,updatedAt){   // add or replace a pattern in the local library
+  const ex=expand(raw); if(!ex.items.length) return false;
+  pos=Math.max(0,Math.min(ex.items.length,pos|0));
+  lsSet('rbr.p.'+id,{raw,pos,tallies:tallies||{},updatedAt:updatedAt||Date.now()});
+  const s=summaryOf(ex.items,ex.totalRows,pos,tallies); let e=entry(id);
+  if(!e){ e={id}; LIB.list.unshift(e); }
+  e.title=raw.title; e.summary=s.text; e.pct=s.pct; e.updatedAt=updatedAt||Date.now(); saveLib(); return true;
+}
+function addPattern(raw){
+  const id=newId(); if(!storePattern(id,raw,0,{},Date.now())) return false;
+  dbWrite('pat_'+id,{id,title:raw.title,json:JSON.stringify(raw)}); pushProgress(id);
+  openPattern(id,true); return true;
+}
+function dropLocal(id){ lsDel('rbr.p.'+id); LIB.list=LIB.list.filter(p=>p.id!==id); if(LIB.active===id) LIB.active=null; }
+function removePattern(id){
+  if(progDirty===id){ clearTimeout(progTimer); progDirty=''; }
+  dropLocal(id); LIB.deleted=[id].concat(LIB.deleted.filter(x=>x!==id)).slice(0,200); saveLib();
+  dbWrite('pat_'+id,null); dbWrite('prog_'+id,null); dbWrite('meta',{deleted:LIB.deleted});
+  if(S.id===id){ S.id=''; S.raw=null; items=[]; }
+  showHome(); $('setupStatus').textContent='Pattern removed.';
+}
+function openPattern(id,focus){
+  const b=lsGet('rbr.p.'+id); const raw=b&&cleanRaw(b.raw); if(!raw){ dropLocal(id); saveLib(); showHome(); return false; }
+  flushProgress();
+  const ex=expand(raw); S.id=id; S.raw=raw; items=ex.items; totalRows=ex.totalRows;
+  S.pos=Math.max(0,Math.min(items.length,b.pos|0)); S.tallies=(b.tallies&&typeof b.tallies==='object')?b.tallies:{}; S.updatedAt=b.updatedAt||0;
+  LIB.active=id; saveLib(); lastJump=null;
+  $('home').hidden=true; $('tracker').hidden=false; setChrome(true); closeFinish();
+  $('title').textContent=raw.title; $('moveStatus').textContent=''; $('matchResult').textContent=''; $('matchStatus').textContent=''; $('matchImg').hidden=true;
+  buildList(); buildKey(); render(false);
+  if(focus){ window.scrollTo(0,0); $('current').focus({preventScroll:true}); }
+  return true;
+}
+function showHome(){
+  flushProgress(); S.id=''; LIB.active=null; saveLib();
+  $('tracker').hidden=true; setChrome(false); $('home').hidden=false;
+  $('title').textContent='Row by Row'; $('subtitle').textContent='Keep your place in your knitting patterns';
+  renderLib(); window.scrollTo(0,0); $('main').focus({preventScroll:true});
+}
+function renderLib(){
+  const ul=$('lib'); ul.textContent=''; $('libCard').hidden=!LIB.list.length;
+  $('setupH').textContent=LIB.list.length?'Add another pattern':'Add a pattern';
+  for(const p of LIB.list){
+    const bar=el('div',{class:'progress','aria-hidden':'true'},el('div')); bar.firstChild.style.width=(p.pct||0)+'%';
+    const when=p.updatedAt?new Date(p.updatedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'';
+    const acts=el('div',{class:'row'});
+    const li=el('li',null,el('div',{class:'name',text:p.title||'My pattern'}),el('div',{class:'muted',text:(p.summary||'Not started')+(when?' – last worked '+when:'')}),bar,acts);
+    const normal=()=>{ acts.textContent=''; acts.append(
+      el('button',{class:'primary',type:'button',text:'Open',onclick:()=>openPattern(p.id,true)}),
+      el('button',{type:'button',text:'Remove','aria-label':'Remove '+(p.title||'pattern'),onclick:()=>{ acts.textContent=''; const keep=el('button',{type:'button',text:'Keep it',onclick:normal}); acts.append(el('button',{class:'primary',type:'button',text:'Yes, remove it',onclick:()=>removePattern(p.id)}),keep); keep.focus(); }})); };
+    normal(); ul.append(li);
+  }
+}
+async function initDb(){
+  const [db,user]=await Promise.all([use('db'),use('user')]); if(!db||!user) return;
+  try{
+    const uid=await user.id(); if(!uid) return;
+    const col=db.collection('data/users/'+uid);
+    const snap=await col.get(); dbCol=col;
+    const docs={}; for(const d of snap.docs) if(d.exists) docs[d.id]=d.data()||{};
+    // removed patterns
+    const remote=Array.isArray(docs.meta&&docs.meta.deleted)?docs.meta.deleted.map(String):[];
+    const dead=Array.from(new Set(LIB.deleted.concat(remote))).slice(0,200);
+    if(dead.length!==remote.length) dbWrite('meta',{deleted:dead});
+    LIB.deleted=dead; let changed=false, reopen=false;
+    for(const id of dead){ if(entry(id)){ dropLocal(id); changed=true; if(S.id===id){ S.id=''; reopen=true; } } if(docs['pat_'+id]) dbWrite('pat_'+id,null); if(docs['prog_'+id]) dbWrite('prog_'+id,null); }
+    // first version kept a single pattern in two documents
+    if(docs.pattern&&docs.pattern.json&&docs.pattern.id&&!dead.includes(String(docs.pattern.id))){ const id=String(docs.pattern.id); if(!docs['pat_'+id]){ docs['pat_'+id]={id,json:docs.pattern.json}; dbWrite('pat_'+id,{id,title:'',json:docs.pattern.json}); } if(docs.progress&&docs.progress.patternId===docs.pattern.id&&!docs['prog_'+id]){ docs['prog_'+id]={id,pos:docs.progress.pos,tallies:docs.progress.tallies,updatedAt:docs.progress.updatedAt}; dbWrite('prog_'+id,docs['prog_'+id]); } }
+    if(docs.pattern) dbWrite('pattern',null); if(docs.progress) dbWrite('progress',null);
+    // bring in patterns and newer progress from other devices
+    for(const k in docs){ if(k.slice(0,4)!=='pat_') continue; const id=String(docs[k].id||k.slice(4)); if(dead.includes(id)) continue;
+      const g=docs['prog_'+id]||{}; let t={}; try{ t=JSON.parse(g.tallies||'{}')||{}; }catch(e){}
+      const local=id===S.id?{updatedAt:S.updatedAt}:lsGet('rbr.p.'+id);
+      if(!entry(id)||!local){ let raw=null; try{ raw=cleanRaw(JSON.parse(docs[k].json)); }catch(e){} if(raw&&storePattern(id,raw,Number(g.pos)||0,t,Number(g.updatedAt)||Date.now())) changed=true; }
+      else if(Number(g.updatedAt)>(local.updatedAt||0)){ const b=lsGet('rbr.p.'+id); if(b&&b.raw&&storePattern(id,cleanRaw(b.raw)||b.raw,Number(g.pos)||0,t,Number(g.updatedAt))){ changed=true; if(S.id===id) reopen=true; } }
+    }
+    // send up anything only this device has
+    for(const p of LIB.list){ const b=lsGet('rbr.p.'+p.id); if(!b||!b.raw) continue; const g=docs['prog_'+p.id];
+      if(!docs['pat_'+p.id]) dbWrite('pat_'+p.id,{id:p.id,title:p.title||'',json:JSON.stringify(b.raw)});
+      if(!g||Number(g.updatedAt)<(b.updatedAt||0)) pushProgress(p.id); }
+    saveLib();
+    if(reopen){ const id=S.id; if(id&&entry(id)) openPattern(id,false); else showHome(); }
+    else if(changed&&!S.id) renderLib();
+  }catch(e){}
+}
+
+/* ---------- rendering ---------- */
+const colourOf=id=>S.raw.colours.find(c=>c.id===id);
+function render(announce){
+  const it=items[S.pos], box=$('alertBox'); box.textContent='';
+  const s=summaryOf(items,totalRows,S.pos,S.tallies), prog=$('prog');
+  $('progFill').style.width=s.pct+'%'; prog.setAttribute('aria-valuemax',items.length); prog.setAttribute('aria-valuenow',Math.min(S.pos,items.length)); prog.setAttribute('aria-valuetext',s.pct+' per cent done');
+  const chips=$('chips'); chips.textContent=''; $('untilBox').hidden=true; $('chartWrap').hidden=true; $('soon').hidden=true; $('doneBox').hidden=true;
+  const counter=$('counter');
+  const setCounter=txt=>{ const old=counter.textContent; counter.textContent=''; for(const ch of txt) counter.append(el('span',{text:ch,class:old!==txt?'tick':''})); };
+  if(!it){
+    setCounter('✓'); $('curH').textContent='Pattern finished'; $('curSub').textContent='Every row is ticked off.';
+    $('instr').textContent='Well done – that’s the whole pattern worked.'; $('btnDone').disabled=true; $('btnDone').textContent='All done';
+    $('subtitle').textContent='Finished'; $('doneBox').hidden=false; updateList(); if(announce) $('live').textContent='Pattern finished.'; return;
+  }
+  $('btnDone').disabled=false;
+  $('btnDone').textContent=it.kind==='row'?'Row complete':(it.kind==='until'?'Row worked':'Step done');
+  setCounter(it.kind==='row'?String(it.rowNo).padStart(String(totalRows).length,'0'):(it.kind==='until'?'↻':'•'));
+  $('curH').textContent=it.kind==='row'?('Row '+it.rowNo+' of '+totalRows):(it.kind==='until'?'Repeat until it measures up':'Step');
+  $('curSub').textContent=it.section||'';
+  $('subtitle').textContent=(it.kind==='row'?'Row '+it.rowNo+' of '+totalRows:labelOf(it))+(it.section?' – '+it.section:'');
+  if(it.rep) chips.append(el('li',{text:'Repeat '+it.rep.i+' of '+it.rep.of+', row '+it.rep.r+' of '+it.rep.len}));
+  if(it.side) chips.append(el('li',{text:it.side==='RS'?'Right side':'Wrong side'}));
+  if(it.colour){ const c=colourOf(it.colour); const sw=el('span',{class:'sw'}); if(c) sw.style.background=c.hex; chips.append(el('li',null,sw,'Colour '+it.colour+(c&&c.name!==it.colour?': '+c.name:''))); }
+  if(it.sts) chips.append(el('li',{text:it.sts+' stitches'}));
+  $('instr').textContent=it.text;
+  if(it.alerts.length){ const ul=el('ul'); for(const a of it.alerts) ul.append(el('li',null,el('span',null,el('strong',{text:ALERT_LABEL[a.type]+': '}),a.note))); box.append(ul); }
+  if(it.kind==='until'){
+    const n=S.tallies[S.pos]||0, cyc=$('cycle'); cyc.textContent='';
+    it.cycle.forEach((d,i)=>cyc.append(el('li',{class:i===n%it.cycle.length?'next':'',text:d.text+(d.side?' ('+d.side+')':'')})));
+    $('tally').textContent='Rows worked in this section: '+n; $('untilBox').hidden=false;
+  }
+  if(SET.chart) drawChart();
+  for(let k=1;k<=3;k++){ const nx=items[S.pos+k]; if(nx&&nx.alerts.length){ $('soon').textContent='Coming up in '+k+(k===1?' row: ':' rows: ')+nx.alerts.map(a=>a.note).join('; '); $('soon').hidden=false; break; } }
+  updateList();
+  if(announce){
+    $('live').textContent=labelOf(it)+'. '+it.text;
+    if(it.alerts.length&&navigator.vibrate){ try{ navigator.vibrate([120,60,120]); }catch(e){} }
+    if(SET.autoRead==='all'||(SET.autoRead==='alerts'&&it.alerts.length)) say(spokenFor(it));
+  }
+}
+
+const SYM={k:'Knit (blank square)',p:'Purl (dot)',yo:'Yarn over (open circle)',k2tog:'Knit 2 together (leans right)',ssk:'Slip, slip, knit (leans left)',sl:'Slip stitch (V)',m1:'Make 1 (M)',kfb:'Knit front and back (F)',bo:'Bind off (B)',co:'Cast on (C)',cable:'Cable cross (wide X)',other:'See the written row (∗)'};
+function drawSym(g,s,x,y,w){
+  const cx=x+w/2, cy=y+13;
+  if(s==='p') g.append(sv('circle',{cx,cy,r:3.5,class:'dot'}));
+  else if(s==='yo') g.append(sv('circle',{cx,cy,r:7,class:'ln'}));
+  else if(s==='k2tog') g.append(sv('line',{x1:x+6,y1:y+20,x2:x+20,y2:y+6,class:'ln'}));
+  else if(s==='ssk') g.append(sv('line',{x1:x+6,y1:y+6,x2:x+20,y2:y+20,class:'ln'}));
+  else if(s==='sl') g.append(sv('polyline',{points:`${x+6},${y+6} ${cx},${y+20} ${x+20},${y+6}`,class:'ln'}));
+  else if(s==='cable'){ g.append(sv('line',{x1:x+4,y1:y+21,x2:x+w-4,y2:y+5,class:'ln'})); g.append(sv('line',{x1:x+4,y1:y+5,x2:x+w-4,y2:y+21,class:'ln'})); }
+  else if(s!=='k'){ const t=sv('text',{x:cx,y:y+18,class:'sym'}); t.textContent={m1:'M',kfb:'F',bo:'B',co:'C'}[s]||'∗'; g.append(t); }
+}
+function unitsOf(chart){ const u=[]; let tot=0; for(const [s0,n] of chart){ const s=SYM[s0]?s0:'other'; if(s==='cable'){ const w=Math.min(n,8); if(tot+w>32) break; u.push({s,w}); tot+=w; } else for(let i=0;i<n;i++){ if(tot>=32) return u; u.push({s,w:1}); tot++; } } return u; }
+function drawChart(){
+  const it=items[S.pos], rows=[];
+  if(it.kind==='until'){ const n=S.tallies[S.pos]||0; it.cycle.forEach((d,i)=>{ if(d.chart.length) rows.unshift({lab:'Row '+String.fromCharCode(97+i%26),d,cur:i===n%it.cycle.length}); }); }
+  else if(it.kind==='row'&&it.chart.length){ for(let i=S.pos;i>=0&&rows.length<5;i--){ const r=items[i]; if(r.kind==='row'&&r.chart.length) rows.push({lab:'Row '+r.rowNo,d:r,cur:i===S.pos}); else break; } }
+  rows.forEach(r=>r.u=unitsOf(r.d.chart)); if(!rows.length||!rows.some(r=>r.u.length)) return;
+  const C=26, L=74, maxU=Math.max(...rows.map(r=>r.u.reduce((a,u)=>a+u.w,0)));
+  const W=L+maxU*C+46, H=rows.length*C+8, svg=sv('svg',{viewBox:`0 0 ${W} ${H}`,width:W,height:H,role:'img'});
+  svg.setAttribute('aria-label','Stitch diagram. '+rows.map(r=>r.lab+': '+(r.d.spoken||r.d.text)).join('. '));
+  rows.forEach((r,ri)=>{
+    const y=4+ri*C, c=r.d.colour?colourOf(r.d.colour):null;
+    if(c) svg.append(sv('circle',{cx:9,cy:y+13,r:6,fill:c.hex,stroke:'currentColor','stroke-width':1.5}));
+    const t=sv('text',{x:20,y:y+18}); t.textContent=r.lab; if(r.cur) t.setAttribute('font-weight','700'); svg.append(t);
+    let x=L; for(const u of r.u){ const w=u.w*C; svg.append(sv('rect',{x,y,width:w,height:C,class:'cell'})); if(c) svg.append(sv('rect',{x:x+1,y:y+1,width:w-2,height:C-2,fill:c.hex,opacity:.2})); drawSym(svg,u.s,x,y,w); x+=w; }
+    if(r.d.chartRepeat){ const rt=sv('text',{x:x+6,y:y+18}); rt.textContent='↻ rep'; svg.append(rt); }
+    if(r.cur&&x>L) svg.append(sv('rect',{x:L-1,y:y,width:x-L+2,height:C,class:'cur'}));
+  });
+  const box=$('chartbox'); box.textContent=''; box.append(svg); $('chartWrap').hidden=false;
+}
+
+let listEls=[];
+function buildList(){
+  const host=$('list'); host.textContent=''; listEls=[]; let ol=null;
+  items.forEach((it,i)=>{
+    if(it.sectionStart||!ol){ if(it.section&&it.sectionStart) host.append(el('h3',{text:it.section})); ol=el('ol',{class:'list'}); host.append(ol); }
+    const b=el('button',{type:'button',onclick:()=>jumpTo(i)}, el('span',{class:'box','aria-hidden':'true'}), el('span',{class:'num',text:labelOf(it)}), el('span',{class:'txt',text:it.text}));
+    if(it.alerts.length) b.append(el('span',{class:'flag',text:ALERT_LABEL[it.alerts[0].type]}));
+    const li=el('li',null,b); ol.append(li); listEls.push(li);
+  });
+}
+function updateList(){
+  listEls.forEach((li,i)=>{ const it=items[i], st=i<S.pos?'done':(i===S.pos?'now':''); if(li.className===st&&li.firstChild.hasAttribute('aria-label')) return; li.className=st;
+    const b=li.firstChild; b.setAttribute('aria-label',labelOf(it)+', '+(st==='done'?'done':(st==='now'?'current row':'to do'))+': '+it.text+(it.alerts.length?'. '+ALERT_LABEL[it.alerts[0].type]:'')); if(st==='now') b.setAttribute('aria-current','step'); else b.removeAttribute('aria-current'); });
+}
+function buildKey(){
+  const raw=S.raw; $('notes').textContent=[raw.notes,raw.unreadable?('Could not be read clearly: '+raw.unreadable):''].filter(Boolean).join(' ');
+  const used=new Set(); for(const k in raw.defs) for(const c of raw.defs[k].chart) used.add(SYM[c[0]]?c[0]:'other');
+  const sk=$('symKey'); sk.textContent='';
+  for(const s of Object.keys(SYM)) if(used.has(s)){ const w=s==='cable'?52:26; const g=sv('svg',{width:w,height:26,viewBox:`0 0 ${w} 26`,'aria-hidden':'true'}); g.append(sv('rect',{x:.5,y:.5,width:w-1,height:25,class:'cell'})); drawSym(g,s,0,0,w); sk.append(el('li',null,g,SYM[s])); }
+  if(!used.size) sk.append(el('li',{text:'No diagrams for this pattern.'}));
+  const ck=$('colKey'); ck.textContent=''; $('colH').hidden=!raw.colours.length;
+  for(const c of raw.colours){ const sw=el('span',{class:'sw'}); sw.style.background=c.hex; ck.append(el('li',null,sw,c.id+(c.name!==c.id?': '+c.name:''))); }
+  const ab=$('abbr'); ab.textContent=''; $('abbrH').hidden=!raw.abbreviations.length;
+  for(const a of raw.abbreviations){ ab.append(el('dt',{text:a.abbr}),el('dd',{text:a.meaning})); }
+}
+
+/* ---------- moving ---------- */
+function advance(n){
+  if(!S.id||!items[S.pos]) return; n=Math.max(1,Math.min(500,n|0)); let note='';
+  if(items[S.pos].kind==='until'){ S.tallies[S.pos]=(S.tallies[S.pos]||0)+n; }
+  else for(let i=0;i<n;i++){ S.pos++; const it=items[S.pos]; if(!it) break; if(it.kind==='until'&&i<n-1){ note='Stopped at a section that repeats until it measures up.'; break; } }
+  lastJump=null; $('moveStatus').textContent=note; saveProgress(); render(true);
+}
+function back(n){
+  if(!S.id) return; n=Math.max(1,Math.min(500,n|0));
+  for(let i=0;i<n;i++){ const it=items[S.pos]; if(it&&it.kind==='until'&&(S.tallies[S.pos]||0)>0) S.tallies[S.pos]--; else if(S.pos>0) S.pos--; else break; }
+  $('moveStatus').textContent=''; saveProgress(); render(true);
+}
+function finishSection(){ const it=items[S.pos]; if(it&&it.kind==='until'){ S.pos++; saveProgress(); render(true); $('current').focus({preventScroll:true}); } }
+function jumpTo(i){
+  setTab('knit'); i=Math.max(0,Math.min(items.length,i)); if(i===S.pos){ $('current').focus({preventScroll:true}); window.scrollTo(0,0); return; } lastJump=S.pos; S.pos=i; saveProgress(); render(true);
+  const st=$('moveStatus'); st.textContent='Moved to '+(items[S.pos]?labelOf(items[S.pos]).toLowerCase():'the end')+'. ';
+  st.append(el('button',{type:'button',text:'Undo',onclick:()=>{ if(lastJump!=null){ S.pos=lastJump; lastJump=null; saveProgress(); render(true); st.textContent='Moved back.'; } }}));
+  $('current').scrollIntoView({block:'start'}); $('current').focus({preventScroll:true});
+}
+function gotoRow(n){ const i=items.findIndex(it=>it.kind==='row'&&it.rowNo===n); if(i>=0){ jumpTo(i); return true; } return false; }
+function findMe(){ setTab('list'); const li=listEls[Math.min(S.pos,listEls.length-1)]; if(li){ li.scrollIntoView({block:'center'}); li.firstChild.focus({preventScroll:true}); } }
+function whereText(){ const it=items[S.pos]; if(!it) return 'You’ve finished the pattern.'; return 'You’re on '+(it.kind==='row'?'row '+it.rowNo+' of '+totalRows:(it.kind==='until'?'a repeat section, '+(S.tallies[S.pos]||0)+' rows worked':'a step'))+(it.section?', in '+it.section:'')+(it.rep?', repeat '+it.rep.i+' of '+it.rep.of:'')+'.'; }
+
+function setTab(t){
+  document.querySelectorAll('.tabp').forEach(p=>{ p.hidden=p.dataset.tab!==t; });
+  document.querySelectorAll('#nav button').forEach(b=>{ if(b.dataset.go===t) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  $('displayCard').hidden=t!=='tools'; if(t==='list') $('listCard').open=true;
+}
+function setChrome(inPattern){
+  $('nav').hidden=!inPattern; $('btnHome').hidden=!inPattern; $('btnFinish').hidden=!inPattern;
+  if(inPattern) setTab('knit'); else $('displayCard').hidden=false;
+}
+document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>{ setTab(b.dataset.go); window.scrollTo(0,0); }));
+function closeFinish(){ $('finishPanel').hidden=true; $('btnFinish').setAttribute('aria-expanded','false'); }
+$('btnFinish').onclick=()=>{ const p=$('finishPanel'); if(p.hidden){ setTab('knit'); p.hidden=false; $('btnFinish').setAttribute('aria-expanded','true'); p.scrollIntoView({block:'nearest'}); $('finishH').focus({preventScroll:true}); } else closeFinish(); };
+$('btnFinishNo').onclick=()=>{ closeFinish(); $('btnFinish').focus(); };
+$('btnRestart').onclick=()=>{ S.pos=0; S.tallies={}; lastJump=null; saveProgress(); closeFinish(); render(true); $('moveStatus').textContent='Back at the start of the pattern.'; $('current').focus({preventScroll:true}); };
+$('btnRemove').onclick=()=>removePattern(S.id);
+$('btnDoneRemove').onclick=()=>removePattern(S.id);
+$('btnDoneHome').onclick=showHome;
+$('btnHome').onclick=showHome;
+$('btnDone').onclick=()=>advance(1);
+$('btnBack').onclick=()=>back(1);
+$('btnAdv').onclick=()=>advance(parseInt($('advN').value,10)||1);
+$('btnFind').onclick=findMe;
+$('btnSection').onclick=finishSection;
+$('btnSpeak').onclick=()=>{ const it=items[S.pos]; say(it?spokenFor(it):'Pattern finished.',true); };
+
+document.addEventListener('keydown',e=>{
+  if(!SET.keys||!S.id||e.ctrlKey||e.metaKey||e.altKey||!e.key) return;
+  const t=e.target, tag=t&&t.tagName; if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||(t&&t.isContentEditable)) return;
+  const k=e.key.toLowerCase();
+  if(k==='n') advance(1); else if(k==='b') back(1); else if(k==='r') $('btnSpeak').click();
+  else if(k==='w'){ const w=whereText(); $('live').textContent=w; $('moveStatus').textContent=w; say(w,true); }
+});
+
+/* ---------- speaking ---------- */
+let tts=null, ttsOff=false, dict=null, listening=false, recog=null, wantListen=false, synthUntil=0;
+function expandAbbr(t){
+  return t.replace(/\*/g,' ').replace(/\bk(\d+)tog\b/gi,'knit $1 together').replace(/\bp(\d+)tog\b/gi,'purl $1 together')
+   .replace(/\bssk\b/gi,'slip, slip, knit').replace(/\byo\b/gi,'yarn over').replace(/\bkfb\b/gi,'knit front and back')
+   .replace(/\bm1([lr])?\b/gi,(m,d)=>'make one'+(d?(d.toLowerCase()==='l'?' left':' right'):''))
+   .replace(/\bk(\d+)\b/gi,'knit $1').replace(/\bp(\d+)\b/gi,'purl $1').replace(/\bsl(\d+)\b/gi,'slip $1')
+   .replace(/\bk\b/gi,'knit').replace(/\bp\b/gi,'purl').replace(/\bsts\b/gi,'stitches').replace(/\bst\b/gi,'stitch')
+   .replace(/\brep\b/gi,'repeat').replace(/\bRS\b/g,'right side').replace(/\bWS\b/g,'wrong side').replace(/\btbl\b/gi,'through the back loop')
+   .replace(/\bpm\b/gi,'place marker').replace(/\bsm\b/gi,'slip marker').replace(/\bCO\b/g,'cast on').replace(/\bBO\b/g,'bind off').replace(/\bbeg\b/gi,'beginning');
+}
+function spokenFor(it){
+  const p=[labelOf(it)+'.'];
+  if(it.alerts.length) p.push('Heads up. '+it.alerts.map(a=>a.note).join('. ')+'.');
+  if(it.rep) p.push('Repeat '+it.rep.i+' of '+it.rep.of+'.');
+  if(it.side) p.push(it.side==='RS'?'Right side.':'Wrong side.');
+  if(it.kind==='until'){ const n=S.tallies[S.pos]||0, d=it.cycle.length?it.cycle[n%it.cycle.length]:null; p.push('Repeat until '+it.until+'.'); if(d) p.push('Next: '+(d.spoken||expandAbbr(d.text))+'.'); }
+  else p.push((it.spoken||expandAbbr(it.text))+'.');
+  if(it.sts) p.push(it.sts+' stitches.');
+  return p.join(' ');
+}
+function synthSay(text){
+  if(!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined') return false;
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='en-GB'; u.rate=SET.rate;
+    synthUntil=Date.now()+Math.min(45000,2500+text.length*95); $('btnStopSpeak').hidden=false;
+    u.onend=u.onerror=()=>{ synthUntil=Date.now()+1200; $('btnStopSpeak').hidden=true; };
+    speechSynthesis.speak(u); return true; }catch(e){ return false; }
+}
+async function say(text,fromClick){
+  text=String(text).slice(0,1900); if(ttsOff) return;
+  if(tts&&!listening){
+    try{ await tts.speak(text,{rate:SET.rate,language:'en-GB'}); return; }
+    catch(e){ if(e&&e.code==='not_granted'){ ttsOff=true; $('btnSpeak').hidden=true; return; } if(!(e&&e.code==='busy')) return; }
+  }
+  if(!synthSay(text)&&fromClick) $('moveStatus').textContent='Reading aloud isn’t available here, so the row stays on screen.';
+}
+$('btnStopSpeak').onclick=()=>{ if(tts) tts.stop().catch(()=>{}); try{ speechSynthesis.cancel(); }catch(e){} synthUntil=Date.now()+800; $('btnStopSpeak').hidden=true; };
+
+/* ---------- listening ---------- */
+const NW={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,sixty:60,seventy:70,eighty:80,ninety:90,hundred:100};
+function numIn(t){ const m=t.match(/\d+/); if(m) return parseInt(m[0],10); let tot=0,found=false; for(const w of t.split(' ')){ if(NW[w]){ if(w==='hundred') tot=(tot||1)*100; else tot+=NW[w]; found=true; } else if(found&&w!=='and') break; } return found?tot:null; }
+function runCommand(t){
+  const n=numIn(t);
+  if(/where am i|what row|which row/.test(t)){ const w=whereText(); say(w); return w; }
+  if(/stop listening/.test(t)){ stopListening(); return 'Stopped listening.'; }
+  if(/(go|jump|skip) to row/.test(t)&&n) return gotoRow(n)?'Going to row '+n+'.':'There’s no row '+n+' in this pattern.';
+  if(/\b(back|undo|previous)\b/.test(t)){ back(n||1); return 'Went back '+(n||1)+'.'; }
+  if(/(section|repeat) (is )?(complete|completed|done|finished)|finish(ed)? (the |this )?section/.test(t)){ finishSection(); return 'Section finished.'; }
+  if(/\b(advance|forward|skip|move on)\b/.test(t)){ advance(n||1); return 'Advanced '+(n||1)+'.'; }
+  if(/\brows? (is |are )?(complete|completed|done|finished)\b|\bnext row\b|^(done|next|complete|completed)$/.test(t)){ advance(/\brows\b/.test(t)&&n?n:1); return 'Row complete.'; }
+  if(/\b(read|say)\b|repeat that|\bagain\b/.test(t)){ const it=items[S.pos]; if(it) say(spokenFor(it)); return 'Reading the row.'; }
+  return '';
+}
+let pend='', pendAt=0;
+function handleHeard(text){
+  if(Date.now()<synthUntil||!S.id) return;
+  const t=String(text).toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); if(!t) return;
+  let did=runCommand(t), shown=t;
+  if(!did&&pend&&Date.now()-pendAt<3000){ shown=pend+' '+t; did=runCommand(shown); }   // a phrase can arrive in two pieces
+  if(did){ pend=''; } else { pend=t.slice(-40); pendAt=Date.now(); }
+  const msg=did?('Heard “'+shown.slice(0,60)+'”. '+did):('Heard “'+t.slice(0,60)+'” – not a command.');
+  $('heard').textContent=msg; if(did) $('moveStatus').textContent=$('moveStatus').textContent||'';
+}
+function setListenUI(on){ listening=on; const b=$('btnListen'); b.setAttribute('aria-pressed',String(on)); b.textContent=on?'Listening… press to stop':'Listen for “row complete”'; }
+function startListening(){
+  wantListen=true;
+  if(dict){ dict.start().catch(e=>{ wantListen=false; const c=e&&e.code; $('moveStatus').textContent=c==='not_granted'?'The microphone isn’t allowed for this page, so use the buttons instead.':(c==='dismissed'||c==='stopped'?'':'Listening couldn’t start just now. Try again in a moment.'); if(c==='not_granted'||c==='unavailable') $('btnListen').hidden=true; }); }
+  else if(recog){ try{ recog.start(); setListenUI(true); }catch(e){} }
+}
+function stopListening(){ wantListen=false; if(dict) dict.stop().catch(()=>{}); else if(recog){ try{ recog.stop(); }catch(e){} setListenUI(false); } }
+$('btnListen').onclick=()=>{ if(listening) stopListening(); else startListening(); };
+
+async function initVoice(){
+  [tts,dict]=await Promise.all([use('tts'),use('dictation')]);
+  if(tts){ if(tts.setRate) tts.setRate(SET.rate).catch(()=>{}); tts.onState(({state,reason})=>{ $('btnStopSpeak').hidden=state==='idle'; if(state==='idle'&&(reason==='not_granted'||reason==='unavailable')){ ttsOff=true; $('btnSpeak').hidden=true; } }); }
+  if(dict){
+    dict.onFinal(({text})=>handleHeard(text));
+    dict.onState(({state,reason})=>{ setListenUI(state==='listening'||state==='starting'); if(state==='idle'&&reason==='hidden') $('moveStatus').textContent='Listening stopped when the page was hidden. Press Listen to start again.'; });
+  } else {
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(SR){ try{ recog=new SR(); recog.continuous=true; recog.interimResults=false; recog.lang='en-GB';
+      recog.onresult=e=>{ for(let i=e.resultIndex;i<e.results.length;i++) if(e.results[i].isFinal) handleHeard(e.results[i][0].transcript); };
+      recog.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='audio-capture'){ wantListen=false; setListenUI(false); $('btnListen').hidden=true; $('voiceNote').textContent='Voice commands aren’t available in this view, so use the Row complete button. They work in Chrome or Edge on a computer.'; } };
+      recog.onend=()=>{ if(wantListen){ try{ recog.start(); }catch(e){ wantListen=false; setListenUI(false); } } else setListenUI(false); };
+    }catch(e){ recog=null; } }
+  }
+  const canHear=!!(dict||recog), canSpeak=!!tts||(('speechSynthesis' in window)&&typeof SpeechSynthesisUtterance!=='undefined');
+  $('btnListen').hidden=!canHear; $('btnSpeak').hidden=!canSpeak||ttsOff;
+  $('voiceNote').textContent=(canHear?'Press Listen once, then keep your hands on the needles and say “row complete”. ':'Voice commands aren’t available in this view (they work in Chrome or Edge on a computer, or the Claude desktop app). ')
+    +(canSpeak?(dict?'While listening is on, rows are read in your device’s own voice.':''):'Reading aloud isn’t available here either; alerts still show on screen.');
+}
+
+/* wake lock */
+let wl=null;
+if('wakeLock' in navigator){ $('wakeRow').hidden=false;
+  const req=async()=>{ try{ wl=await navigator.wakeLock.request('screen'); }catch(e){ $('wake').checked=false; $('wakeRow').hidden=true; } };
+  $('wake').onchange=e=>{ if(e.target.checked) req(); else if(wl){ wl.release().catch(()=>{}); wl=null; } };
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&$('wake').checked) req(); });
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') flushProgress(); });
+
+/* ---------- reading the pattern with Claude ---------- */
+let sample=null, imgLimit=0, photos=[], ctl=null, busy=false;
+const ERR=c=>({not_granted:'Claude isn’t allowed for this page, so the pattern can’t be read. Allow it in the page’s Permissions menu, or open the sample.',sampling_disabled:'Claude isn’t available on this account, so the pattern can’t be read.',rate_limited:'Claude is busy or a usage limit has been reached. Try again in a wee while.',session_expired:'You’ve been signed out. Sign in again, then retry.',image_rejected:'One of those photos couldn’t be used. Try a JPEG or PNG under 20 MB.',images_unavailable:'Photos can’t be sent from this view. Type or paste the pattern instead.',invalid_json:'The checklist came back incomplete – the pattern may be too long for one go. Try one page or section at a time.',refused:'That couldn’t be read. Try a closer, sharper photo of the written instructions.',empty_completion:'That couldn’t be read. Try a closer, sharper photo of the written instructions.',cancelled:'Cancelled.'}[c]||'Something went wrong reaching Claude. Try again.');
+
+async function loadPicture(file){
+  if(window.createImageBitmap){ try{ return await createImageBitmap(file,{imageOrientation:'from-image'}); }catch(e){} }
+  return await new Promise((res,rej)=>{ const im=new Image(), u=URL.createObjectURL(file); im.onload=()=>{ res(im); setTimeout(()=>URL.revokeObjectURL(u),0); }; im.onerror=()=>{ URL.revokeObjectURL(u); rej(new Error('decode')); }; im.src=u; });
+}
+// Re-encode as JPEG (phones often hand over HEIC) and, where there is room, cut a page into two overlapping halves so small print survives.
+async function prepPicture(file,split){
+  try{
+    const bm=await loadPicture(file), w=bm.width||bm.naturalWidth, h=bm.height||bm.naturalHeight; if(!w||!h) throw 0;
+    const parts=split&&Math.max(w,h)>=1500?2:1, out=[];
+    for(let i=0;i<parts;i++){
+      let sx=0,sy=0,sw=w,sh=h;
+      if(parts===2){ if(h>=w){ sh=Math.round(h*0.56); sy=i?h-sh:0; } else { sw=Math.round(w*0.56); sx=i?w-sw:0; } }
+      const sc=Math.min(1,2200/Math.max(sw,sh)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(sw*sc)); c.height=Math.max(1,Math.round(sh*sc));
+      c.getContext('2d').drawImage(bm,sx,sy,sw,sh,0,0,c.width,c.height);
+      out.push(await new Promise(r=>c.toBlob(r,'image/jpeg',0.9)));
+    }
+    if(bm.close) bm.close();
+    if(out.length&&out.every(Boolean)) return out;
+  }catch(e){}
+  return [file];
+}
+function parsePrompt(src,size){
+  return `You are turning a knitting pattern into a row-by-row checklist a knitter ticks off as they work. ${src}
+${size?'The knitter is making this size: '+size+'. Use only the figures for that size.':'If the pattern gives several sizes, use the first size and say so in "notes".'}
+
+Reply with ONLY one JSON object, no commentary, shaped like this:
+{"title":"short name","notes":"needles, gauge, size used, anything essential, max 300 characters, or empty","unreadable":"what you could not read clearly, or empty",
+"colours":[{"id":"A","name":"Navy","hex":"#223a66"}],
+"abbreviations":[{"abbr":"k2tog","meaning":"knit two stitches together"}],
+"defs":{"a":{"text":"K2, *p2, k2; rep from * to end","spoken":"Knit 2, then purl 2, knit 2, repeated to the end","side":"RS","colour":"A","sts":42,"chart":[["k",2],["p",2],["k",2]],"chartRepeat":true}},
+"steps":[{"note":"Cast on 42 stitches","section":"Ribbing"},{"repeat":[{"d":"a"},{"d":"b"}],"times":6},{"d":"c","section":"Body","alerts":[{"type":"increase","note":"Increase row: 44 stitches"}]},{"until":"work measures 20 cm","cycle":["a","b"]},{"note":"Bind off"}]}
+
+Rules:
+- "defs" holds each DISTINCT row instruction once, with a short id. "text" is the instruction as the pattern writes it (for the chosen size). "spoken" is the same instruction with every abbreviation written out in plain words for reading aloud. "side" is "RS", "WS" or "". "colour" is a colour id ("" if the pattern is one colour and names none; otherwise every def has one - make separate defs for the same stitches in different colours). "sts" is the stitch count after the row if the pattern states or clearly implies it, else null.
+- "chart" lists the stitches in working order as [symbol, count] pairs, using only: k, p, yo, k2tog, ssk, sl, m1, kfb, cable (count = stitches crossed), bo, co, other. Give the whole row if it is 32 stitches or fewer; otherwise give one repeat of the stitch pattern and set "chartRepeat" true. Use [] if it cannot be drawn sensibly.
+- "steps" is the whole pattern in knitting order. {"d":id} is one row. {"repeat":[...],"times":n} repeats rows a known number of times - always use this for "repeat rows 1-4 six times" or "work 20 rows"; never write long repeats out by hand. If one pass of a repeat differs (a shaping row, a colour change), write that pass out separately. {"until":"...","cycle":[ids]} is for "continue until work measures...". {"note":"..."} is for steps that are not rows: cast on, bind off, pick up stitches, seaming, finishing.
+- Put "section" on the first step of each part (Ribbing, Body, Sleeve...).
+- Add "alerts" to any row where the knitter must do something different from the rows around it: types are colour, increase, decrease, shaping, cable, change (a recurring row that differs this time), count (check stitch count), other. Notes are short and say exactly what to do. Colour changes between rows are detected automatically from "colour", so only add a colour alert for changes within a row.
+- "colours": every yarn colour with the pattern's own letter or name as id and a sensible hex. "abbreviations": only those used.
+- Do not invent rows. If part of the pattern is unreadable, include what you can and describe the gap in "unreadable".`;
+}
+async function runParse(src,files){
+  if(busy) return; busy=true;
+  const st=$('setupStatus'); ctl=new AbortController(); $('btnStop').hidden=false; $('btnRead').disabled=true; $('btnText').disabled=true;
+  st.textContent='Reading your pattern. This usually takes under a minute…';
+  try{
+    const opts={signal:ctl.signal,cache:false};
+    if(files&&files.length){
+      const split=files.length*2<=imgLimit; let imgs=[];
+      for(const f of files) imgs=imgs.concat(await prepPicture(f,split));
+      if(ctl.signal.aborted) throw {code:'cancelled'};
+      opts.images=imgs.slice(0,imgLimit||1);
+      if(imgs.length>files.length) src+=' To keep small print legible, a page may be supplied as two overlapping halves in order (top then bottom, or left then right); read lines that appear in both halves only once.';
+    }
+    const data=await sample.json(parsePrompt(src,$('size').value.trim().slice(0,60)),opts);
+    const raw=cleanRaw(data);
+    if(!raw||!addPattern(raw)) st.textContent='No rows could be found in that. Try a clearer photo of the written instructions, or type them in.';
+    else { st.textContent=''; photos.forEach(p=>URL.revokeObjectURL(p.url)); photos=[]; drawThumbs(); $('patText').value=''; $('size').value='';
+      if(raw.unreadable) $('moveStatus').textContent='Some of the pattern couldn’t be read – see “Key, colours and abbreviations” under Tools and check against your copy.'; }
+  }catch(e){ st.textContent=ERR(e&&e.code); if(e&&(e.code==='not_granted'||e.code==='sampling_disabled')) noClaude(); }
+  finally{ busy=false; $('btnStop').hidden=true; $('btnRead').disabled=!photos.length||!sample; $('btnText').disabled=false; }
+}
+$('btnStop').onclick=()=>{ if(ctl) ctl.abort(); };
+function noClaude(){ sample=null; $('photoPart').hidden=true; $('noClaude').hidden=false; $('textPart').open=true; $('matchCard').hidden=true; }
+function drawThumbs(){
+  const ul=$('thumbs'); ul.textContent='';
+  photos.forEach((p,i)=>{ ul.append(el('li',null,el('img',{src:p.url,alt:'Pattern photo '+(i+1)}),el('button',{type:'button','aria-label':'Remove photo '+(i+1),text:'×',onclick:()=>{ URL.revokeObjectURL(p.url); photos.splice(i,1); drawThumbs(); }}))); });
+  $('btnRead').disabled=!photos.length||!sample||busy;
+}
+function addFiles(list){
+  $('setupStatus').textContent='';
+  for(const f of Array.from(list||[])){ if(f.type&&!f.type.startsWith('image/')) continue; if(imgLimit&&photos.length>=imgLimit){ $('setupStatus').textContent='That’s the most photos that can be read at once ('+imgLimit+'). Add the rest as a separate pattern.'; break; } photos.push({file:f,url:URL.createObjectURL(f)}); }
+  drawThumbs();
+}
+$('fileCam').onchange=e=>{ addFiles(e.target.files); e.target.value=''; };
+$('filePick').onchange=e=>{ addFiles(e.target.files); e.target.value=''; };
+$('matchFile').onchange=e=>{ const f=e.target.files[0]; e.target.value=''; runMatch(f); };
+// Open the system camera or photo picker from a real button press; if nothing appears, point to the ways round it.
+function openPicker(inputId){
+  const inp=$(inputId), forMatch=inputId==='matchFile'; let opened=false; const mark=()=>{ opened=true; };
+  window.addEventListener('blur',mark,{once:true}); document.addEventListener('visibilitychange',mark,{once:true});
+  inp.addEventListener('change',mark,{once:true}); inp.addEventListener('cancel',mark,{once:true});
+  try{ if(typeof inp.showPicker==='function') inp.showPicker(); else inp.click(); }catch(e){ try{ inp.click(); }catch(e2){} }
+  setTimeout(()=>{ if(opened) return; $(forMatch?'matchHelp':'pickHelp').open=true; $(forMatch?'matchStatus':'setupStatus').textContent='If nothing opened, this view won’t let the page reach your camera or photos. See “Photo button'+(forMatch?'':'s')+' not opening?” for two ways round it.'; },2500);
+}
+$('btnCam').onclick=()=>openPicker('fileCam');
+$('btnPick').onclick=()=>openPicker('filePick');
+$('btnMatchPick').onclick=()=>openPicker('matchFile');
+document.addEventListener('paste',e=>{
+  const cd=e.clipboardData; if(!cd) return;
+  const files=Array.from(cd.files||[]).filter(f=>f.type&&f.type.startsWith('image/'));
+  if(!files.length&&cd.items) for(const it of Array.from(cd.items)) if(it.kind==='file'&&it.type.startsWith('image/')){ const f=it.getAsFile(); if(f) files.push(f); }
+  const inBox=e.target&&e.target.closest&&e.target.closest('.pastebox');
+  if(!files.length){ if(inBox){ e.preventDefault(); $($('home').hidden?'matchStatus':'setupStatus').textContent='That wasn’t a photo. Copy the picture itself in your photos app, then paste again.'; } return; }
+  e.preventDefault();
+  if(!$('home').hidden){ addFiles(files); $('setupStatus').textContent='Photo added. Press “Make my checklist” when you have them all.'; } else runMatch(files[0]);
+});
+document.querySelectorAll('.pastebox').forEach(b=>b.addEventListener('input',()=>{ b.textContent=''; }));
+$('btnRead').onclick=()=>{ if(sample&&photos.length) runParse('The pattern is in the attached photo'+(photos.length>1?'s, in page order':'')+'. Read the written instructions (and any chart) carefully.',photos.map(p=>p.file)); };
+let sampleReady=null;
+$('btnText').onclick=async()=>{
+  const txt=$('patText').value.trim(); if(!txt){ $('setupStatus').textContent='Type or paste the pattern first.'; return; }
+  $('btnText').disabled=true; await sampleReady; $('btnText').disabled=false;
+  if(sample) return runParse('The pattern text is below between the lines of dashes.\n-----\n'+txt.slice(0,40000)+'\n-----');
+  const defs={}, steps=[]; txt.split(/\n+/).map(s=>s.trim()).filter(Boolean).slice(0,1500).forEach((line,i)=>{ defs['l'+i]={text:line.slice(0,500)}; steps.push({d:'l'+i}); });
+  if(addPattern(cleanRaw({title:'My pattern',defs,steps}))) $('patText').value='';
+};
+$('btnSample').onclick=()=>addPattern(cleanRaw(JSON.parse(JSON.stringify(SAMPLE))));
+
+/* ---------- photo matching ---------- */
+let mctl=null, murl=null;
+$('btnMatchStop').onclick=()=>{ if(mctl) mctl.abort(); };
+async function runMatch(f){
+  if(!f||!sample||!S.id||mctl) return;
+  const forId=S.id;
+  if(murl) URL.revokeObjectURL(murl); murl=URL.createObjectURL(f); const im=$('matchImg'); im.src=murl; im.hidden=false;
+  const st=$('matchStatus'), res=$('matchResult'); res.textContent=''; st.textContent='Comparing your knitting with the pattern…';
+  const long=items.length>250; const lines=items.map((it,i)=>(i+1)+'. '+(it.sectionStart&&it.section?'['+it.section+'] ':'')+(it.colour?'('+((colourOf(it.colour)||{}).name||it.colour)+') ':'')+(it.kind==='until'?'REPEAT UNTIL '+it.until+': '+it.cycle.map(d=>d.text).join(' / '):it.text.slice(0,long?50:140))).join('\n').slice(0,60000);
+  const prompt=`A knitter is part-way through the pattern below and has attached a photo of the work so far. Estimate which numbered checklist step they have most recently COMPLETED, using what is visible: count ribbing rows, garter ridges, stripes and their colours, lace or cable repeats, shaping, and compare with the pattern in order. The cast-on edge is the start.
+
+Their tracker currently says they have completed step ${S.pos} of ${items.length}. Treat that as a hint, not a fact.
+
+Checklist (step number. [section] (colour) instruction):
+${lines}
+
+Reply with ONLY a JSON object: {"step": number (last completed step, 0 if nothing yet), "low": number, "high": number, "confidence": "low"|"medium"|"high", "evidence": "max 300 characters: what you could see and count", "tip": "max 200 characters: how the knitter can confirm on the fabric"}
+Be honest. Plain repeated rows are hard to count from a photo; if you cannot tell, give a wide low-high range and confidence "low". If the photo does not show knitting, set confidence "low" and say so in "evidence".`;
+  mctl=new AbortController(); $('btnMatchStop').hidden=false;
+  try{
+    const img=(await prepPicture(f,false))[0];
+    const r=await sample.json(prompt,{images:[img],signal:mctl.signal,cache:false});
+    if(S.id!==forId) return;
+    st.textContent='';
+    const step=Math.max(0,Math.min(items.length,parseInt(r&&r.step,10)||0)), target=items[step];
+    const conf={low:'Low',medium:'Medium',high:'High'}[r&&r.confidence]||'Low';
+    const box=el('div',{class:'panel'},
+      el('p',null,el('strong',{text:'Best estimate: you’ve finished '+(step?labelOf(items[step-1]).toLowerCase():'nothing yet')+', so '+(target?labelOf(target).toLowerCase()+' is next.':'the pattern is complete.')})),
+      el('p',{text:'Confidence: '+conf+'.'+(r&&Number.isFinite(r.low)&&Number.isFinite(r.high)&&r.high>r.low?' It could be anywhere from step '+r.low+' to '+r.high+' of the checklist.':'')}),
+      el('p',{text:str(r&&r.evidence,300)}), r&&r.tip?el('p',null,el('strong',{text:'To check: '}),str(r.tip,200)):null);
+    const row=el('div',{class:'row'});
+    if(step!==S.pos) row.append(el('button',{class:'primary',type:'button',text:'Move me to '+(target?labelOf(target).toLowerCase():'the end'),onclick:()=>{ res.textContent=''; jumpTo(step); }}));
+    row.append(el('button',{type:'button',text:step!==S.pos?'Stay where I am':'That matches – carry on',onclick:()=>{ res.textContent=''; setTab('knit'); $('current').scrollIntoView({block:'start'}); $('current').focus({preventScroll:true}); }}));
+    box.append(row); res.append(box);
+  }catch(err){ if(S.id===forId) st.textContent=err&&err.code==='invalid_json'?'The comparison didn’t come back clearly. Try another photo with the whole piece in view.':ERR(err&&err.code); }
+  finally{ mctl=null; $('btnMatchStop').hidden=true; }
+};
+
+/* ---------- start ---------- */
+applySettings();
+(function migrate(){   // the first version kept one pattern under a single key
+  const old=lsGet('rbr.state'); if(!old) return;
+  const raw=old.raw&&cleanRaw(old.raw); const id=String(old.id||newId());
+  if(raw&&!entry(id)&&!LIB.deleted.includes(id)&&storePattern(id,raw,old.pos|0,old.tallies||{},old.updatedAt||Date.now())) LIB.active=id;
+  lsDel('rbr.state'); saveLib();
+})();
+if(!(LIB.active&&entry(LIB.active)&&openPattern(LIB.active,false))) { $('home').hidden=false; renderLib(); }
+sampleReady=(async()=>{
+  sample=await use('sample');
+  if(!sample){ noClaude(); return; }
+  const lim=await sample.limits().catch(()=>null);
+  if(lim&&lim.images){ imgLimit=lim.images.maxCount||1; if(imgLimit<2) $('filePick').removeAttribute('multiple'); }
+  else { $('photoPart').hidden=true; $('textPart').open=true; $('matchCard').hidden=true; $('noClaude').hidden=false; $('noClaude').textContent='Photos can’t be sent from this view, but you can type or paste the pattern below and it will be turned into a checklist.'; }
+  drawThumbs();
+})();
+initVoice(); initDb();
+})();
+</script>
+</body>
+</html>
